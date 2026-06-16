@@ -1,5 +1,8 @@
+import { yupResolver } from "@hookform/resolvers/yup";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { Link } from "react-router";
+import * as yup from "yup";
 
 const tw = {
 	cardBase: "p-6 py-7 border border-black/20 bg-white flex flex-col gap-6",
@@ -11,6 +14,30 @@ const tw = {
 	btnReset: "text-violet-700 bg-transparent border-none hover:underline",
 	inputToggle: "w-5 h-5 cursor-pointer accent-violet-700",
 };
+
+const schema = yup.object({
+	name: yup.string().required("Nama wajib diisi"),
+	age: yup
+		.number()
+		.typeError("Umur harus berupa angka")
+		.integer("Umur harus bilangan bulat")
+		.min(1, "Umur tidak valid")
+		.required("Umur wajib diisi"),
+	gender: yup
+		.string()
+		.oneOf(["male", "female"])
+		.required("Jenis kelamin wajib dipilih"),
+	smoking: yup
+		.string()
+		.oneOf(["0", "1"])
+		.required("Pilihan perokok wajib dipilih"),
+	brand: yup.array().when("smoking", {
+		is: "0",
+		// oxlint-disable-next-line unicorn/no-thenable
+		then: (s) => s.length(0, "Silahkan pilih perokok jika anda merokok"),
+		otherwise: (s) => s.optional(),
+	}),
+});
 
 const fields = [
 	{ input: "name", label: "Siapa nama Anda?", type: "text" },
@@ -49,20 +76,17 @@ const fields = [
 export default function Form() {
 	const [submitted, setSubmitted] = useState(false);
 
-	function handleSubmit(e) {
-		e.preventDefault();
+	const {
+		register,
+		handleSubmit,
+		reset,
+		formState: { errors },
+	} = useForm({
+		resolver: yupResolver(schema),
+		defaultValues: { brand: [] },
+	});
 
-		const data = {};
-		const formData = new FormData(e.target);
-
-		for (const key of new Set(formData.keys())) {
-			if (key.endsWith("[]")) {
-				data[key.slice(0, -2)] = formData.getAll(key);
-			} else {
-				data[key] = formData.get(key);
-			}
-		}
-
+	function onSubmit(data) {
 		const existing = JSON.parse(localStorage.getItem("data") ?? "[]");
 		localStorage.setItem("data", JSON.stringify([...existing, data]));
 		setSubmitted(true);
@@ -82,8 +106,7 @@ export default function Form() {
 		<main className="max-w-3xl mx-auto p-4 flex flex-col gap-6">
 			<form
 				className="flex flex-col gap-4"
-				onSubmit={handleSubmit}
-				onReset={() => {}}
+				onSubmit={handleSubmit(onSubmit)}
 			>
 				<div className={`${tw.cardBase} ${tw.cardHeader}`}>
 					<h1 className="text-3xl">Form Survey Perokok</h1>
@@ -106,14 +129,10 @@ export default function Form() {
 								>
 									<input
 										type={field.type}
-										name={
-											field.type === "checkbox"
-												? `${field.input}[]`
-												: field.input
-										}
 										id={choice.value}
 										value={choice.value}
 										className={tw.inputToggle}
+										{...register(field.input)}
 									/>
 									<label
 										htmlFor={choice.value}
@@ -126,11 +145,17 @@ export default function Form() {
 						) : (
 							<input
 								type={field.type}
-								name={field.input}
 								id={field.input}
 								placeholder="Jawaban Anda"
 								className="border-0 p-4 py-5 bg-black/2.5 border-b border-black/50 mb-px focus:outline-none focus:border-b-2 focus:border-black focus:mb-0"
+								{...register(field.input)}
 							/>
+						)}
+
+						{errors[field.input] && (
+							<p className="text-red-500 text-sm mbs-1">
+								{errors[field.input].message}
+							</p>
 						)}
 					</div>
 				))}
@@ -144,6 +169,7 @@ export default function Form() {
 					</button>
 					<button
 						type="reset"
+						onClick={reset}
 						className={`${tw.buttonBase} ${tw.btnReset}`}
 					>
 						Bersihkan form
