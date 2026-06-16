@@ -6,7 +6,7 @@ React excercise for implementing Google Form design.
 
 ## Screenshot
 
-![Page screenshot](docs/screenshot.png)
+![Form screenshot](docs/form.png)
 ![Data screenshot](docs/data.png)
 
 ## License
