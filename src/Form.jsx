@@ -4,14 +4,9 @@ import { useForm } from "react-hook-form";
 import { Link } from "react-router";
 import * as yup from "yup";
 
+import { cn } from "#/utils";
+
 const tw = {
-	cardBase: "p-6 py-7 border border-black/20 bg-white flex flex-col gap-6",
-	cardHeader: "rounded-b-lg rounded-t-2xl border-t-[16px] border-t-violet-700",
-	cardField: "rounded-lg",
-	buttonBase: "w-fit text-sm font-medium p-2.5 cursor-pointer",
-	btnSubmit:
-		"px-6 text-white bg-violet-700 border border-black/20 rounded hover:opacity-90 transition-opacity",
-	btnReset: "text-violet-700 bg-transparent border-none hover:underline",
 	inputToggle: "w-5 h-5 cursor-pointer accent-violet-700",
 };
 
@@ -73,6 +68,61 @@ const fields = [
 	},
 ];
 
+/**
+ * @typedef CardProps
+ * @prop {"header" | "field"} [variant]
+ */
+
+/**
+ * @param {React.PropsWithChildren<React.ComponentProps<"div"> & CardProps>}
+ */
+function Card({ variant = "field", className, children, ...props }) {
+	return (
+		<div
+			className={cn(
+				"p-6 py-7 border border-black/20 bg-white flex flex-col gap-6",
+				{
+					"rounded-b-lg rounded-t-2xl border-t-16 border-t-violet-700":
+						variant === "header",
+					"rounded-lg": variant === "field",
+				},
+				className,
+			)}
+			{...props}
+		>
+			{children}
+		</div>
+	);
+}
+
+/**
+ * @typedef ButtonProps
+ * @prop {"primary" | "text"} [variant]
+ */
+
+/**
+ * @param {React.PropsWithChildren<React.ComponentProps<"button"> & ButtonProps>}
+ */
+function Button({ variant = "primary", className, children, ...props }) {
+	return (
+		<button
+			className={cn(
+				"w-fit text-sm font-medium p-2.5 cursor-pointer",
+				{
+					"px-6 text-white bg-violet-700 border border-black/20 rounded hover:opacity-90 transition-opacity":
+						variant === "primary",
+					"text-violet-700 bg-transparent border-none hover:underline":
+						variant === "text",
+				},
+				className,
+			)}
+			{...props}
+		>
+			{children}
+		</button>
+	);
+}
+
 export default function Form() {
 	const [submitted, setSubmitted] = useState(false);
 
@@ -95,9 +145,9 @@ export default function Form() {
 	if (submitted) {
 		return (
 			<main className="max-w-3xl mx-auto p-4">
-				<div className={`${tw.cardBase} ${tw.cardHeader}`}>
+				<Card variant="header">
 					<h1 className="text-3xl">Terimakasih telah mengisi form ini.</h1>
-				</div>
+				</Card>
 			</main>
 		);
 	}
@@ -108,15 +158,12 @@ export default function Form() {
 				className="flex flex-col gap-4"
 				onSubmit={handleSubmit(onSubmit)}
 			>
-				<div className={`${tw.cardBase} ${tw.cardHeader}`}>
+				<Card variant="header">
 					<h1 className="text-3xl">Form Survey Perokok</h1>
-				</div>
+				</Card>
 
 				{fields.map((field) => (
-					<div
-						key={field.input}
-						className={`${tw.cardBase} ${tw.cardField}`}
-					>
+					<Card key={field.input}>
 						<div className="text-lg">
 							<label htmlFor={field.input}>{field.label}</label>
 						</div>
@@ -157,23 +204,18 @@ export default function Form() {
 								{errors[field.input].message}
 							</p>
 						)}
-					</div>
+					</Card>
 				))}
 
 				<div className="flex justify-between mt-2">
-					<button
-						type="submit"
-						className={`${tw.buttonBase} ${tw.btnSubmit}`}
-					>
-						Simpan
-					</button>
-					<button
+					<Button type="submit">Simpan</Button>
+					<Button
 						type="reset"
 						onClick={reset}
-						className={`${tw.buttonBase} ${tw.btnReset}`}
+						variant="text"
 					>
 						Bersihkan form
-					</button>
+					</Button>
 				</div>
 			</form>
 
