@@ -1,9 +1,9 @@
 {
-	"name": "react4",
+	"name": "react5",
 	"private": true,
 	"license": "MIT",
 	"author": "Ryan Suhartanto <suhartanto@kekkon.nexus>",
-	"repository": "ryansuhartanto/koda-b8-react4",
+	"repository": "ryansuhartanto/koda-b8-react5",
 	"type": "module",
 	"imports": {
 		"#/*": "./src/*"
